@@ -1,0 +1,48 @@
+{
+  "name": "Batch processing RSS feeds",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "1fe3ae07-1544-4383-a3c8-e1934bd26187",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { url: 'https://medium.com/feed/n8n-io' } },\n  { json: { url: 'https://dev.to/feed/n8n' } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [208, 0],
+      "id": "05e0e6ea-2dab-4ace-99cc-c4bc66f8171a",
+      "name": "Feed URLs"
+    },
+    {
+      "parameters": { "options": {} },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [416, 0],
+      "id": "1a413935-ab26-4ae5-94d9-2cf4a039df8b",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": { "url": "={{ $json.url }}", "options": {} },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [688, 16],
+      "id": "5e3e717f-efa1-43da-bb89-fd29ab13028c",
+      "name": "RSS Read"
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": { "main": [[{ "node": "Feed URLs", "type": "main", "index": 0 }]] },
+    "Feed URLs": { "main": [[{ "node": "Loop Over Items", "type": "main", "index": 0 }]] },
+    "Loop Over Items": { "main": [[], [{ "node": "RSS Read", "type": "main", "index": 0 }]] },
+    "RSS Read": { "main": [[{ "node": "Loop Over Items", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

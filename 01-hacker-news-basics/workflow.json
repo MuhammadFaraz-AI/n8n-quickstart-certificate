@@ -1,0 +1,35 @@
+{
+  "name": "Hacker News workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "a76e97a5-8778-40bf-9287-e4c9e6efc882",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "resource": "all",
+        "limit": 10,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.hackerNews",
+      "typeVersion": 1,
+      "position": [208, 0],
+      "id": "f961492d-784f-47d4-b056-ad6a23744013",
+      "name": "Hacker News",
+      "notesInFlow": true,
+      "notes": "get the 10 latest articles"
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [[{ "node": "Hacker News", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

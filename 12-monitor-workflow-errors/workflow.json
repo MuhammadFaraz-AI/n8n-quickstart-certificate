@@ -1,0 +1,48 @@
+{
+  "name": "Monitor workflow errors",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "23c0606b-3a02-41a9-befe-3bedf26e7e16",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "38054890-bf69-46b5-994e-f597b1077694",
+              "name": "content",
+              "value": "=Workflow Error Alert - Workflow: {{ $json.workflow.name }} | Error: {{ $json.execution.error.message }} | Last node: {{ $json.execution.lastNodeExecuted }} | Execution URL: {{ $json.execution.url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [224, 0],
+      "id": "163b220a-2a2b-4a52-ba05-604e42bb75c8",
+      "name": "Build Error Message"
+    },
+    {
+      "parameters": { "authentication": "webhook", "content": "= {{ $json.content }}", "options": {} },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [448, 0],
+      "id": "06625f5f-dff9-4bcd-9f49-dc7305a71692",
+      "name": "Discord"
+    }
+  ],
+  "connections": {
+    "Error Trigger": { "main": [[{ "node": "Build Error Message", "type": "main", "index": 0 }]] },
+    "Build Error Message": { "main": [[{ "node": "Discord", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

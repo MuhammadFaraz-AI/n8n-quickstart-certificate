@@ -1,0 +1,58 @@
+{
+  "name": "Code node and sub-workflow call",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "1d827d1d-9b07-4cb4-ba4e-97e9bd924f03",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { firstName: \"  ali \", lastName: \" khan  \" } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [208, 0],
+      "id": "9ea47411-b0f6-44fa-a81f-c37d9f026d05",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SUB_WORKFLOW_ID",
+          "mode": "list",
+          "cachedResultName": "Sub - Format Customer Name"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [416, 0],
+      "id": "e536f048-9f2b-4048-aa79-c7f2a959bebe",
+      "name": "Call 'Sub - Format Customer Name'"
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [[{ "node": "Code in JavaScript", "type": "main", "index": 0 }]]
+    },
+    "Code in JavaScript": {
+      "main": [[{ "node": "Call 'Sub - Format Customer Name'", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,231 @@
+{
+  "name": "Generating regional sales reports",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-48, 0],
+      "id": "927b2e38-d9e3-4c55-b851-8c3135b9dfb5",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "url": "https://learn.app.n8n.cloud/webhook/courses/n8n-quickstart/company-data",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "x-assessment-id", "value": "YOUR-ASSESSMENT-ID" }] },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [192, -96],
+      "id": "d96308c7-50ec-4d91-a401-5e4adb711319",
+      "name": "Get Order Data",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": { "__rl": true, "value": "REPLACE_WITH_YOUR_DATATABLE_ID", "mode": "list", "cachedResultName": "customers" }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [208, 144],
+      "id": "64c51a28-b8fb-40e9-acbc-1d9bd9298ac0",
+      "name": "Get Customers"
+    },
+    {
+      "parameters": { "mode": "combine", "fieldsToMatchString": "customerID", "options": {} },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [544, 0],
+      "id": "034a8c19-1c6b-4c03-94e3-5ddc54208ad7",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "9e1f3e98-5ca0-4ecc-a789-d24b5e9be7e3", "name": "orderTotal", "value": "= {{ $json.orderPrice * $json.quantity }}", "type": "number" }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [752, 0],
+      "id": "e3e0a5a4-9bb6-4b84-8c56-d67ace486687",
+      "name": "Calculate Total"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": { "sortField": [{ "fieldName": "orderTotal", "order": "descending" }] },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [960, 0],
+      "id": "183d2773-77dc-4cdc-802a-eb7ac39a3603",
+      "name": "Sort By Total"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+          "conditions": [
+            {
+              "id": "d2951a50-0ab0-440f-9141-86c1328268eb",
+              "leftValue": "={{ $json.region }}",
+              "rightValue": " Europe",
+              "operator": { "type": "string", "operation": "equals", "name": "filter.operator.equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [1168, 0],
+      "id": "af5a9bf6-b36f-4a54-bcea-02ec5865fe26",
+      "name": "Europe Only"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Initialize the total variable\nlet totalPrice = 0;\n\n// 2. Loop through all incoming rows/items\nfor (const item of $input.all()) {\n  // Extract the price field and convert it to a number\n  const priceValue = parseFloat(item.json.orderTotal);\n\n  // Add to total if it is a valid number\n  if (!isNaN(priceValue)) {\n    totalPrice += priceValue;\n  }\n}\n\n// 3. Return the single final total object\nreturn [{ total_price: totalPrice }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1424, 0],
+      "id": "5291a41a-24ae-4286-a70c-3ae2df5c0a86",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": { "options": {} },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [1632, 0],
+      "id": "509e8763-5fe8-4224-aee9-d62643f10819",
+      "name": "Convert to CSV"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://learn.app.n8n.cloud/webhook/courses/n8n-quickstart/upload-report",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "x-assessment-id", "value": "YOUR-ASSESSMENT-ID" }] },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [1872, 0],
+      "id": "eb266b78-b8c6-4d9e-b3a8-66e4a8aee046",
+      "name": "Upload Report"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": { "values": [{ "aggregation": "sum", "field": "orderTotal" }, { "field": "orderTotal" }] },
+        "fieldsToSplitBy": "region",
+        "options": { "outputFormat": "separateItems" }
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [1120, -336],
+      "id": "e5979741-f152-4032-97fa-a4f7e42535b0",
+      "name": "Summarize By Region"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": { "sortField": [{ "fieldName": "sum_orderTotal", "order": "descending" }] },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [1616, -336],
+      "id": "5a9c22a3-ced0-4f37-8b1f-d0159675d38f",
+      "name": "Sort Summary"
+    },
+    {
+      "parameters": { "options": {} },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [1872, -224],
+      "id": "3e730792-9ff4-4eef-8024-b37fca1e082b",
+      "name": "Summary to CSV"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fa8eb275-d606-49df-8af8-64ef119e0d84",
+              "name": "discord_message ",
+              "value": "=Regional Sales Summary: {{ $json.region }} - {{ $json.count_orderTotal }} orders, total: ${{ $json.sum_orderTotal.toFixed(2) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [1872, -464],
+      "id": "4cd28b49-30bc-4c10-85cd-e175abab391d",
+      "name": "Build Discord Message"
+    },
+    {
+      "parameters": { "authentication": "webhook", "content": "={{$json['discord_message '] }}", "options": {} },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2096, -464],
+      "id": "c6664a04-db8b-49d2-8c6f-4aca6651ab90",
+      "name": "Send To Discord"
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          { "node": "Get Customers", "type": "main", "index": 0 },
+          { "node": "Get Order Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Get Customers": { "main": [[{ "node": "Merge", "type": "main", "index": 1 }]] },
+    "Get Order Data": { "main": [[{ "node": "Merge", "type": "main", "index": 0 }]] },
+    "Merge": { "main": [[{ "node": "Calculate Total", "type": "main", "index": 0 }]] },
+    "Calculate Total": { "main": [[{ "node": "Sort By Total", "type": "main", "index": 0 }]] },
+    "Sort By Total": {
+      "main": [
+        [
+          { "node": "Europe Only", "type": "main", "index": 0 },
+          { "node": "Summarize By Region", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Europe Only": { "main": [[{ "node": "Code in JavaScript", "type": "main", "index": 0 }]] },
+    "Convert to CSV": { "main": [[{ "node": "Upload Report", "type": "main", "index": 0 }]] },
+    "Code in JavaScript": { "main": [[{ "node": "Convert to CSV", "type": "main", "index": 0 }]] },
+    "Summarize By Region": { "main": [[{ "node": "Sort Summary", "type": "main", "index": 0 }]] },
+    "Sort Summary": {
+      "main": [
+        [
+          { "node": "Summary to CSV", "type": "main", "index": 0 },
+          { "node": "Build Discord Message", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Build Discord Message": { "main": [[{ "node": "Send To Discord", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

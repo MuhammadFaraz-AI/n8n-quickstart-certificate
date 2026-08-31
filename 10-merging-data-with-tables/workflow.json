@@ -1,0 +1,89 @@
+{
+  "name": "Merging data with data tables",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "2404d4dd-3153-4802-8200-41368244666a",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": { "url": "https://learn.app.n8n.cloud/webhook/countries", "options": {} },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [320, 128],
+      "id": "4d86c7c8-18ae-436a-a395-184325a71ff6",
+      "name": "Get Countries"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": { "__rl": true, "value": "REPLACE_WITH_YOUR_DATATABLE_ID", "mode": "list", "cachedResultName": "customers" }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [320, -48],
+      "id": "3fa805bc-0bf4-4b68-8db9-fcfd4226bcfb",
+      "name": "Get Customers"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": { "values": [{ "field1": "customerCountry", "field2": "name" }] },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [576, 0],
+      "id": "3cc2c404-209d-4c46-82a4-2511875faf4c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": { "__rl": true, "value": "REPLACE_WITH_YOUR_DATATABLE_ID", "mode": "list", "cachedResultName": "customers" },
+        "filters": { "conditions": [{ "keyValue": "={{ $json.id }}" }] },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": { "region": "= {{ $json.region }}", "subregion": "={{ $json.subregion }}" },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "customerID", "displayName": "customerID", "type": "number", "display": true, "required": false, "defaultMatch": false, "readOnly": false, "removed": true },
+            { "id": "customerCountry", "displayName": "customerCountry", "type": "string", "display": true, "required": false, "defaultMatch": false, "readOnly": false, "removed": true },
+            { "id": "customerEmail", "displayName": "customerEmail", "type": "string", "display": true, "required": false, "defaultMatch": false, "readOnly": false, "removed": true },
+            { "id": "customerSince", "displayName": "customerSince", "type": "dateTime", "display": true, "required": false, "defaultMatch": false, "readOnly": false, "removed": true },
+            { "id": "region", "displayName": "region", "type": "string", "display": true, "required": false, "defaultMatch": false, "readOnly": false, "removed": false },
+            { "id": "subregion", "displayName": "subregion", "type": "string", "display": true, "required": false, "defaultMatch": false, "readOnly": false, "removed": false }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [784, 0],
+      "id": "870bcce9-6b07-4519-bc38-bad195a82cbc",
+      "name": "Update Customers"
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          { "node": "Get Countries", "type": "main", "index": 0 },
+          { "node": "Get Customers", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Get Countries": { "main": [[{ "node": "Merge", "type": "main", "index": 1 }]] },
+    "Get Customers": { "main": [[{ "node": "Merge", "type": "main", "index": 0 }]] },
+    "Merge": { "main": [[{ "node": "Update Customers", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

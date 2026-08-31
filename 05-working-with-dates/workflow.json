@@ -1,0 +1,106 @@
+{
+  "name": "Working with dates",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "1480f4d8-3490-4759-b3f0-f19c7dd67974",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": { "operation": "getAllPeople", "returnAll": true },
+      "type": "n8n-nodes-base.n8nTrainingCustomerDatastore",
+      "typeVersion": 1,
+      "position": [208, 0],
+      "id": "827f8672-fe77-4ddb-8f1d-0db471b328f2",
+      "name": "Get Customer Data"
+    },
+    {
+      "parameters": {
+        "operation": "roundDate",
+        "date": "={{ $json.created }}",
+        "mode": "roundUp",
+        "outputFieldName": "newDate",
+        "options": { "includeInputFields": true }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [416, 0],
+      "id": "375e52b9-0226-45a8-b345-49cf20d943f9",
+      "name": "Round Date"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+          "conditions": [
+            {
+              "id": "64ce38cb-aa56-40d7-8ebd-66990eeb2a6a",
+              "leftValue": "={{ $json.newDate }}",
+              "rightValue": "1960-01-01T00:00:00",
+              "operator": { "type": "dateTime", "operation": "after" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [624, 0],
+      "id": "3bf78aad-7e1f-47f0-ab3c-f7bf02a5a416",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "addToDate",
+        "magnitude": "={{ $json.newDate }}",
+        "duration": 5,
+        "outputFieldName": "plus5Days",
+        "options": { "includeInputFields": true }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [880, -112],
+      "id": "526d6e70-c98d-4b58-a6a2-2d8067ca463b",
+      "name": "Add 5 Days"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a19cc9d-ff84-496a-8708-2ef1b34462da",
+              "name": "newYear ",
+              "value": "={{ $json.newDate.toDateTime().plus(20, 'years') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [880, 144],
+      "id": "89d9e4da-b0d5-4fa6-82ef-5a9c58d1f183",
+      "name": "Add 20 Years"
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": { "main": [[{ "node": "Get Customer Data", "type": "main", "index": 0 }]] },
+    "Get Customer Data": { "main": [[{ "node": "Round Date", "type": "main", "index": 0 }]] },
+    "Round Date": { "main": [[{ "node": "If", "type": "main", "index": 0 }]] },
+    "If": {
+      "main": [
+        [{ "node": "Add 5 Days", "type": "main", "index": 0 }],
+        [{ "node": "Add 20 Years", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

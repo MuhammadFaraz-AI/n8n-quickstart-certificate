@@ -1,0 +1,36 @@
+{
+  "name": "Converting JSON to a CSV file",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "498ac889-c417-4b4f-ae2f-d40ca75d0e94",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": { "url": "https://learn.app.n8n.cloud/webhook/countries", "options": {} },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [208, 0],
+      "id": "13d286e0-6018-4810-9778-b71454850ffc",
+      "name": "Get Countries"
+    },
+    {
+      "parameters": { "options": {} },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [416, 0],
+      "id": "96ff8dd5-842f-4cbd-9a30-fd3151520792",
+      "name": "Convert to CSV"
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": { "main": [[{ "node": "Get Countries", "type": "main", "index": 0 }]] },
+    "Get Countries": { "main": [[{ "node": "Convert to CSV", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "name": "Data warehouse report automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-320, 64],
+      "id": "35cf60c7-1d0e-4930-b516-1093f0eadda8",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "weeks", "triggerAtDay": [1], "triggerAtHour": 9 }]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [-304, -176],
+      "id": "031a5006-e154-4c34-88b7-19f44ca3efe4",
+      "name": "Trigger Mondays 9am"
+    },
+    {
+      "parameters": {
+        "url": "https://learn.app.n8n.cloud/webhook/courses/n8n-quickstart/company-warehouse",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "x-assessment-id", "value": "YOUR-ASSESSMENT-ID" }]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [-48, -16],
+      "id": "2801a7ab-840c-44b6-9d88-b4a183d479b2",
+      "name": "Get Data From Warehouse"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+          "conditions": [
+            {
+              "id": "961ce91b-0ed3-4d98-9780-4e8f96515d33",
+              "leftValue": "={{ $json.orderStatus }}",
+              "rightValue": "=processing",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [160, -16],
+      "id": "bff7ee2f-de34-47b9-b588-b01f1352e9a2",
+      "name": "Check Order Status"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "8aa05e4b-e5ec-4fc2-a80d-04a767dca1cb", "name": "orderID", "value": "={{ $json.orderID }}", "type": "number" },
+            { "id": "c7fff9db-998a-4dd0-8c45-b1fecc6f85da", "name": "employeeName", "value": "={{ $json.employeeName }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [416, -96],
+      "id": "a5cf8f2a-9245-4c4b-83ed-23bb8a57c29f",
+      "name": "Set Processing Data"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": { "__rl": true, "value": "REPLACE_WITH_YOUR_DATATABLE_ID", "mode": "list", "cachedResultName": "processingOrders" },
+        "filters": { "conditions": [{ "keyName": "=orderID", "keyValue": "={{ $json.orderID }}" }] },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            { "id": "orderID", "displayName": "orderID", "type": "number", "display": true, "required": false, "defaultMatch": false, "readOnly": false, "removed": false },
+            { "id": "employeeName", "displayName": "employeeName", "type": "string", "display": true, "required": false, "defaultMatch": false, "readOnly": false, "removed": false }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [624, -96],
+      "id": "1903586b-72ab-4074-855c-b242cffd9d81",
+      "name": "Upsert row(s)"
+    },
+    {
+      "parameters": {
+        "jsCode": "let items = $input.all();\nlet totalBooked = items.length;\nlet bookedSum = 0;\n\nfor (let i=0; i < items.length; i++) {\n  bookedSum = bookedSum + items[i].json.orderPrice;\n}\n\nreturn [{ json: {totalBooked, bookedSum} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, -304],
+      "id": "44834d47-5209-42d2-b82d-edd18b447ff9",
+      "name": "Calculate Booked Processing Orders"
+    },
+    {
+      "parameters": {
+        "jsCode": "let items = $input.all();\nlet totalBooked = items.length;\nlet bookedSum = 0;\n\nfor (let i=0; i < items.length; i++) {\n  bookedSum = bookedSum + items[i].json.orderPrice;\n}\n\nreturn [{ json: {totalBooked, bookedSum} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 144],
+      "id": "6c55cc3d-13e6-444e-8cfb-8a2fda3b5be0",
+      "name": "Calculate Booked Orders"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=This week we've {{$json.totalBooked}} booked orders with a total value of {{$json.bookedSum.round(2)}}.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [608, 144],
+      "id": "8eb2e102-d4f9-41f6-a95d-964440c2deca",
+      "name": "Post to Discord"
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": { "main": [[{ "node": "Get Data From Warehouse", "type": "main", "index": 0 }]] },
+    "Trigger Mondays 9am": { "main": [[{ "node": "Get Data From Warehouse", "type": "main", "index": 0 }]] },
+    "Get Data From Warehouse": { "main": [[{ "node": "Check Order Status", "type": "main", "index": 0 }]] },
+    "Check Order Status": {
+      "main": [
+        [
+          { "node": "Set Processing Data", "type": "main", "index": 0 },
+          { "node": "Calculate Booked Processing Orders", "type": "main", "index": 0 }
+        ],
+        [{ "node": "Calculate Booked Orders", "type": "main", "index": 0 }]
+      ]
+    },
+    "Set Processing Data": { "main": [[{ "node": "Upsert row(s)", "type": "main", "index": 0 }]] },
+    "Calculate Booked Orders": { "main": [[{ "node": "Post to Discord", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

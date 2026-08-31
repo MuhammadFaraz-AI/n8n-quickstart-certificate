@@ -1,0 +1,54 @@
+{
+  "name": "Merging data (basic)",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "5ec6454d-4949-419d-89ea-56b0005ed6aa",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": { "operation": "getAllPeople", "returnAll": true },
+      "type": "n8n-nodes-base.n8nTrainingCustomerDatastore",
+      "typeVersion": 1,
+      "position": [208, 0],
+      "id": "4c7dd3c9-598d-425b-877f-7788a61c9646",
+      "name": "Customer Datastore (n8n training)"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { name: 'Jay Gatsby', country: { name: 'US' } } },\n  { json: { name: 'Jos\u00e9 Arcadio Buend\u00eda', country: { name: 'CO' } } },\n  { json: { name: 'Max Mustermann', country: { name: 'DE' } } },\n  { json: { name: 'John Smith', country: { name: 'UK' } } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [496, 0],
+      "id": "5793d836-3282-454e-afdb-041d97513af4",
+      "name": "Characters"
+    },
+    {
+      "parameters": { "mode": "combine", "fieldsToMatchString": "name", "options": {} },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [752, -144],
+      "id": "00c9299b-1339-4b8b-b588-685d2ae9538c",
+      "name": "Merge"
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": { "main": [[{ "node": "Customer Datastore (n8n training)", "type": "main", "index": 0 }]] },
+    "Customer Datastore (n8n training)": {
+      "main": [
+        [
+          { "node": "Characters", "type": "main", "index": 0 },
+          { "node": "Merge", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Characters": { "main": [[{ "node": "Merge", "type": "main", "index": 1 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
