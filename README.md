@@ -6,7 +6,7 @@ Each folder below is one lesson from the course, with the exported workflow JSON
 
 ## Certificate
 
-![n8n Quickstart Certificate](n8n QS101 Certificate.png)
+![n8n Quickstart Certificate](n8n-quickstart-certificate/n8n QS101 Certificate.png)
 
 ## What the program covers
 
